@@ -27,7 +27,7 @@ get_venue_info <- function(data) {
 get_highest_ticket_price <- function(events) {
   highest_price <- 0
   highest_price_event <- NULL
-  
+
   for (event in events) {
     price_ranges <- event$priceRanges
     if (!is.null(price_ranges)) {
@@ -45,7 +45,7 @@ get_highest_ticket_price <- function(events) {
 get_lowest_ticket_price <- function(events) {
   lowest_price <- Inf
   lowest_price_event <- NULL
-  
+
   for (event in events) {
     price_ranges <- event$priceRanges
     if (!is.null(price_ranges)) {
@@ -62,17 +62,17 @@ get_lowest_ticket_price <- function(events) {
 # Function to run Ticketmaster analysis
 ticketmaster_analysis <- function(city, classification_name, api_key) {
   params <- list(city = city, classificationName = classification_name)
-  
+
   # Isolates data
   data <- data_request('events.json', params, api_key)
-  
+
   # Extracts venue information
   venue_info <- get_venue_info(data)
-  
+
   # Isolates highest and lowest ticket prices
   highest_price_data <- get_highest_ticket_price(data$`_embedded`$events)
   lowest_price_data <- get_lowest_ticket_price(data$`_embedded`$events)
-  
+
   list(
     most_events_venue = venue_info$most_events_venue,
     least_events_venue = venue_info$least_events_venue,
@@ -83,14 +83,69 @@ ticketmaster_analysis <- function(city, classification_name, api_key) {
   )
 }
 
-api_key <- "INPUT API"
+# Function to convert API response into a clean dataframe
+get_full_ticketmaster_data <- function(city, classification_name, api_key) {
+  params <- list(city = city, classificationName = classification_name)
+
+  # Fetch data from API
+  data <- data_request("events.json", params, api_key)
+
+  # Check if events exist
+  if (is.null(data$`_embedded`$events)) {
+    stop("No events found for the given city and classification.")
+  }
+
+  events <- data$`_embedded`$events
+
+  # Extract key details into a dataframe
+  events_df <- data.frame(
+    Event_Name = sapply(events, function(e) e$name),
+    Event_ID = sapply(events, function(e) e$id),
+    Date = sapply(events, function(e) e$dates$start$localDate),
+    Time = sapply(events, function(e) if (!is.null(e$dates$start$localTime)) e$dates$start$localTime else NA),
+    Venue = sapply(events, function(e) e$`_embedded`$venues[[1]]$name),
+    City = sapply(events, function(e) e$`_embedded`$venues[[1]]$city$name),
+    State = sapply(events, function(e) if (!is.null(e$`_embedded`$venues[[1]]$state)) e$`_embedded`$venues[[1]]$state$name else NA),
+    Country = sapply(events, function(e) e$`_embedded`$venues[[1]]$country$name),
+    Min_Price = sapply(events, function(e) {
+      if (!is.null(e$priceRanges)) e$priceRanges[[1]]$min else NA
+    }),
+    Max_Price = sapply(events, function(e) {
+      if (!is.null(e$priceRanges)) e$priceRanges[[1]]$max else NA
+    }),
+    Ticket_Url = sapply(events, function(e) e$url),
+    Genre = sapply(events, function(e) {
+      if (!is.null(e$classifications)) e$classifications[[1]]$genre$name else NA
+    }),
+    Segment = sapply(events, function(e) {
+      if (!is.null(e$classifications)) e$classifications[[1]]$segment$name else NA
+    }),
+    stringsAsFactors = FALSE
+  )
+
+  # Convert price columns to numeric
+  events_df <- events_df %>%
+    mutate(
+      Min_Price = as.numeric(Min_Price),
+      Max_Price = as.numeric(Max_Price)
+    )
+
+  return(events_df)
+}
+
+# function to print results
+print_ticketmaster_results <- function(city, classification_name, api_key) {
+  result <- ticketmaster_analysis(city, classification_name, api_key)
+
+  cat("Venue with the most events:", result$most_events_venue, "\n")
+  cat("Venue with the least events:", result$least_events_venue, "\n")
+  cat("Event with the highest ticket price:", result$highest_ticket_price_event, "at $", result$highest_ticket_price, "\n")
+  cat("Event with the lowest ticket price:", result$lowest_ticket_price_event, "at $", result$lowest_ticket_price, "\n")
+}
+
+
+api_key <- "mtWEKyzQATVNjswATWrHP8XGUs0aGwA6"
 city <- "New York"
 classification_name <- "music"
 
-result <- ticketmaster_analysis(city, classification_name, api_key)
-cat("Venue with the most events:", result$most_events_venue, "\n")
-cat("Venue with the least events:", result$least_events_venue, "\n")
-cat("Event with the highest ticket price:", result$highest_ticket_price_event, "at $", result$highest_ticket_price, "\n")
-cat("Event with the lowest ticket price:", result$lowest_ticket_price_event, "at $", result$lowest_ticket_price, "\n")
-
-
+print_ticketmaster_results(city, classification_name, api_key)
