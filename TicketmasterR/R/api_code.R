@@ -83,7 +83,57 @@ ticketmaster_analysis <- function(city, classification_name, api_key) {
   )
 }
 
-api_key <- "INPUT API"
+# Function to convert API response into a clean dataframe
+get_full_ticketmaster_data <- function(city, classification_name, api_key) {
+  params <- list(city = city, classificationName = classification_name)
+  
+  # Fetch data from API
+  data <- data_request("events.json", params, api_key)
+  
+  # Check if events exist
+  if (is.null(data$`_embedded`$events)) {
+    stop("No events found for the given city and classification.")
+  }
+  
+  events <- data$`_embedded`$events
+  
+  # Extract key details into a dataframe
+  events_df <- data.frame(
+    Event_Name = sapply(events, function(e) e$name),
+    Event_ID = sapply(events, function(e) e$id),
+    Date = sapply(events, function(e) e$dates$start$localDate),
+    Time = sapply(events, function(e) if (!is.null(e$dates$start$localTime)) e$dates$start$localTime else NA),
+    Venue = sapply(events, function(e) e$`_embedded`$venues[[1]]$name),
+    City = sapply(events, function(e) e$`_embedded`$venues[[1]]$city$name),
+    State = sapply(events, function(e) if (!is.null(e$`_embedded`$venues[[1]]$state)) e$`_embedded`$venues[[1]]$state$name else NA),
+    Country = sapply(events, function(e) e$`_embedded`$venues[[1]]$country$name),
+    Min_Price = sapply(events, function(e) {
+      if (!is.null(e$priceRanges)) e$priceRanges[[1]]$min else NA
+    }),
+    Max_Price = sapply(events, function(e) {
+      if (!is.null(e$priceRanges)) e$priceRanges[[1]]$max else NA
+    }),
+    Ticket_Url = sapply(events, function(e) e$url),
+    Genre = sapply(events, function(e) {
+      if (!is.null(e$classifications)) e$classifications[[1]]$genre$name else NA
+    }),
+    Segment = sapply(events, function(e) {
+      if (!is.null(e$classifications)) e$classifications[[1]]$segment$name else NA
+    }),
+    stringsAsFactors = FALSE
+  )
+  
+  # Convert price columns to numeric
+  events_df <- events_df %>%
+    mutate(
+      Min_Price = as.numeric(Min_Price),
+      Max_Price = as.numeric(Max_Price)
+    )
+  
+  return(events_df)
+}
+
+api_key <- "viqm2Apj3ehaSWOG9l6F7YU90A0aC1X7"
 city <- "New York"
 classification_name <- "music"
 
@@ -92,5 +142,3 @@ cat("Venue with the most events:", result$most_events_venue, "\n")
 cat("Venue with the least events:", result$least_events_venue, "\n")
 cat("Event with the highest ticket price:", result$highest_ticket_price_event, "at $", result$highest_ticket_price, "\n")
 cat("Event with the lowest ticket price:", result$lowest_ticket_price_event, "at $", result$lowest_ticket_price, "\n")
-
-
