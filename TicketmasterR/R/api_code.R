@@ -84,15 +84,23 @@ ticketmaster_analysis <- function(city, classification_name, api_key) {
 }
 
 # Function to convert API response into a clean dataframe
-get_full_ticketmaster_data <- function(city, classification_name, api_key) {
-  params <- list(city = city, classificationName = classification_name)
-
+get_full_ticketmaster_data <- function(api_key, city = NULL, classification_name = NULL, sort_by = NULL) {
+  params <- list()
+  
+  # Only include parameters if they are specified
+  if (!is.null(city)) {
+    params$city <- city
+  }
+  if (!is.null(classification_name)) {
+    params$classificationName <- classification_name
+  }
+  
   # Fetch data from API
   data <- data_request("events.json", params, api_key)
 
   # Check if events exist
   if (is.null(data$`_embedded`$events)) {
-    stop("No events found for the given city and classification.")
+    stop("No events found for the given parameters.")
   }
 
   events <- data$`_embedded`$events
@@ -121,15 +129,33 @@ get_full_ticketmaster_data <- function(city, classification_name, api_key) {
       if (!is.null(e$classifications)) e$classifications[[1]]$segment$name else NA
     }),
     stringsAsFactors = FALSE
-  )
-
-  # Convert price columns to numeric
+  )  
+  # Convert columns to appropriate data types
   events_df <- events_df %>%
     mutate(
+      Date = as.Date(Date, format = "%Y-%m-%d"),
       Min_Price = as.numeric(Min_Price),
       Max_Price = as.numeric(Max_Price)
     )
-
+  
+  # Apply sorting based on user input
+  if (!is.null(sort_by)) {
+    if (sort_by == "date_asc") {
+      events_df <- events_df %>% arrange(Date)
+    } else if (sort_by == "date_desc") {
+      events_df <- events_df %>% arrange(desc(Date))
+    } else if (sort_by == "min_price_asc") {
+      events_df <- events_df %>% arrange(Min_Price)
+    } else if (sort_by == "min_price_desc") {
+      events_df <- events_df %>% arrange(desc(Min_Price))
+    } else if (sort_by == "max_price_asc") {
+      events_df <- events_df %>% arrange(Max_Price)
+    } else if (sort_by == "max_price_desc") {
+      events_df <- events_df %>% arrange(desc(Max_Price))
+    } else {
+      stop("Invalid sort_by parameter. Use 'date_asc', 'date_desc', 'min_price_asc', 'min_price_desc', 'max_price_asc', or 'max_price_desc'.")
+    }
+  }
   return(events_df)
 }
 
