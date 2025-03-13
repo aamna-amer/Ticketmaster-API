@@ -144,7 +144,7 @@ print_ticketmaster_results <- function(city, classification_name, api_key) {
 }
 
 
-api_key <- "mtWEKyzQATVNjswATWrHP8XGUs0aGwA6"
+api_key <- "INSERT API KEY"
 city <- "New York"
 classification_name <- "music"
 
