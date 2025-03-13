@@ -160,7 +160,7 @@ get_full_ticketmaster_data <- function(api_key, city = NULL, classification_name
   return(events_df)
 }
 
-api_key <- "viqm2Apj3ehaSWOG9l6F7YU90A0aC1X7"
+api_key <- "INSERT API KEY"
 city <- "Vancouver"
 classification_name <- "music"
 
