@@ -67,10 +67,15 @@ ticketmaster_analysis <- function(events_df) {
 }
 
 # Function to convert API response into a clean dataframe
-get_full_ticketmaster_data <- function(api_key, city = NULL, classification_name = NULL, sort_by = NULL) {
+get_full_ticketmaster_data <- function(api_key, city = NULL, classification_name = NULL, sort_by = NULL, size = 200) {
   params <- list()
   
   # Only include parameters if they are specified
+  if(size <= 200 && size >= 1){
+    params$size <- as.character(size) # API only accepts size as string
+  } else {
+    stop("Size must be between 200 and 1 inclusive.")
+  }
   if (!is.null(city)) {
     params$city <- city
   }
