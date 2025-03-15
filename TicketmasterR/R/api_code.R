@@ -157,7 +157,7 @@ print_ticketmaster_analysis <- function(events_df) {
   cat("Event with the lowest ticket price:", result$lowest_ticket_price_event, "at $", result$lowest_ticket_price, "\n")
 }
 
-api_key <- "INSERT API KEY"
+api_key <- Sys.getenv("API_KEY", unset = "INSERT API KEY")
 city <- "New York"
 classification_name <- "music"
 
