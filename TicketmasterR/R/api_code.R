@@ -157,7 +157,7 @@ print_ticketmaster_analysis <- function(events_df) {
   cat("Event with the lowest ticket price:", result$lowest_ticket_price_event, "at $", result$lowest_ticket_price, "\n")
 }
 
-api_key <- "API Key"
+api_key <- "INSERT API KEY"
 city <- "New York"
 classification_name <- "music"
 
@@ -286,8 +286,78 @@ avg_event_price_line_plot <- function(events_df) {
   ggplotly(p)
 }
 
+# Function to plot event count distribution by hour of the day
+event_hourly_distribution_plot <- function(events_df) {
+  events_df <- events_df %>%
+    filter(!is.na(Time)) %>%
+    mutate(Hour = as.numeric(substr(Time, 1, 2)))  # Extract hour from Time
+  
+  event_counts <- events_df %>%
+    group_by(Hour) %>%
+    summarise(Count = n()) %>%
+    arrange(Hour)
+  
+  ggplot(event_counts, aes(x = Hour, y = Count)) +
+    geom_bar(stat = "identity", fill = "#d0006f", color = "#009cde", alpha = 0.8) +
+    scale_x_continuous(breaks = 0:23) +  # Ensure all hours are shown
+    labs(
+      title = "Event Count Distribution by Hour of the Day",
+      x = "Hour of the Day (24-Hour Format)",
+      y = "Number of Events"
+    ) +
+    theme(
+      axis.text.x = element_text(angle = 0, hjust = 1, color = "#414141", size = 9),
+      axis.text.y = element_text(color = "#414141", size = 9),
+      plot.title = element_text(size = 16, face = "bold", hjust = 0.5, color = "#414141"),
+      axis.title.x = element_text(size = 12, color = "#414141"),
+      axis.title.y = element_text(size = 12, color = "#414141"),
+      plot.background = element_rect(fill = "#ffffff"),
+      panel.background = element_rect(fill = "#ffffff"),
+      panel.grid.major = element_line(color = "#b7c9d3", linetype = "dotted"),
+      panel.grid.minor = element_line(color = "#009cde", linetype = "dotted"),
+      panel.border = element_blank()
+    )
+}
+
+# Function to plot event count distribution by day of the week
+event_day_distribution_plot <- function(events_df) {
+  events_df <- events_df %>%
+    filter(!is.na(Date)) %>%
+    mutate(Weekday = weekdays(Date))  # Extract day of the week
+  
+  event_counts <- events_df %>%
+    group_by(Weekday) %>%
+    summarise(Count = n()) %>%
+    mutate(Weekday = factor(Weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
+    arrange(Weekday)
+  
+  ggplot(event_counts, aes(x = Weekday, y = Count)) +
+    geom_bar(stat = "identity", fill = "#d0006f", color = "#009cde", alpha = 0.8) +
+    labs(
+      title = "Event Count Distribution by Day of the Week",
+      x = "Day of the Week",
+      y = "Number of Events"
+    ) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, color = "#414141", size = 9),
+      axis.text.y = element_text(color = "#414141", size = 9),
+      plot.title = element_text(size = 16, face = "bold", hjust = 0.5, color = "#414141"),
+      axis.title.x = element_text(size = 12, color = "#414141"),
+      axis.title.y = element_text(size = 12, color = "#414141"),
+      plot.background = element_rect(fill = "#ffffff"),
+      panel.background = element_rect(fill = "#ffffff"),
+      panel.grid.major = element_line(color = "#b7c9d3", linetype = "dotted"),
+      panel.grid.minor = element_line(color = "#009cde", linetype = "dotted"),
+      panel.border = element_blank()
+    )
+}
+
+
 event_class_plot(events_df)
 avg_price_class_plot(events_df)
 
 event_price_count_plot(events_df)
 avg_event_price_line_plot(events_df)
+
+event_hourly_distribution_plot(events_df)
+event_day_distribution_plot(events_df)
