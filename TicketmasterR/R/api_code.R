@@ -4,6 +4,7 @@
 #' @param params A list of query parameters for the API request.
 #' @param api_key A character string containing your Ticketmaster API key.
 #' @return A parsed JSON object containing the API response.
+#' @importFrom httr GET content status_code
 #' @examples
 #' \dontrun{
 #' api_key <- "YOUR_API_KEY"
@@ -14,17 +15,18 @@
 data_request <- function(endpoint, params, api_key) {
   url <- paste0("https://app.ticketmaster.com/discovery/v2/", endpoint)
   params$apikey <- api_key
-  response <- GET(url, query = params)
-  if (status_code(response) != 200) {
+  response <- httr::GET(url, query = params)
+  if (httr::status_code(response) != 200) {
     stop(paste("Error fetching data:", status_code(response)))
   }
-  content(response, "parsed", type = "application/json")
+  httr::content(response, "parsed", type = "application/json")
 }
 
 #' @title Get Venue Information
 #' @description Extracts venue information and counts the number of events per venue.
 #' @param events_df A data frame containing event data.
 #' @return A list with the venue having the most and least events.
+#' @importFrom dplyr summarise group_by
 #' @examples
 #' \dontrun{
 #' venue_info <- get_venue_info(events_df)
@@ -45,6 +47,7 @@ get_venue_info <- function(events_df) {
 #' - `event`: The name of the event with the highest ticket price.
 #' - `price`: The highest ticket price.
 #' If no valid ticket prices are available, returns `NA` for both values.
+#' @importFrom dplyr filter
 #' @examples
 #' \dontrun{
 #' highest_price_info <- get_highest_ticket_price(events_df)
@@ -68,6 +71,7 @@ get_highest_ticket_price <- function(events_df) {
 #' - `event`: The name of the event with the lowest ticket price.
 #' - `price`: The lowest ticket price.
 #' If no valid ticket prices are available, returns `NA` for both values.
+#' @importFrom dplyr filter
 #' @examples
 #' \dontrun{
 #' lowest_price_info <- get_lowest_ticket_price(events_df)
@@ -95,6 +99,7 @@ get_lowest_ticket_price <- function(events_df) {
 #' - `highest_ticket_price`: The highest ticket price.
 #' - `lowest_ticket_price_event`: The event with the lowest ticket price.
 #' - `lowest_ticket_price`: The lowest ticket price.
+#' @importFrom dplyr filter mutate summarise group_by
 #' @examples
 #' \dontrun{
 #' result <- ticketmaster_analysis(events_df)
@@ -128,6 +133,10 @@ ticketmaster_analysis <- function(events_df) {
 #' @param sort_by (Optional) A character string specifying sorting order (e.g., "date_asc").
 #' @param size (Optional) The number of results to return (default = 200).
 #' @return A cleaned data frame containing event details.
+#' @importFrom httr GET content status_code
+#' @importFrom jsonlite fromJSON
+#' @importFrom dplyr mutate arrange filter group_by summarise desc
+#' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
 #' api_key <- "YOUR_API_KEY"
@@ -223,6 +232,7 @@ get_full_ticketmaster_data <- function(api_key, city = NULL, classification_name
 #' - Venue with the least events.
 #' - Event with the highest ticket price.
 #' - Event with the lowest ticket price.
+#' @importFrom dplyr filter mutate summarise group_by
 #' @examples
 #' \dontrun{
 #' print_ticketmaster_analysis(events_df)
@@ -240,6 +250,9 @@ print_ticketmaster_analysis <- function(events_df) {
 #' @description Generates a bar chart showing the number of events available per genre.
 #' @param events_df A data frame containing event data retrieved using `get_full_ticketmaster_data()`.
 #' @return A ggplot object displaying the number of events by genre.
+#' @importFrom dplyr group_by summarise arrange desc
+#' @importFrom ggplot2 ggplot aes geom_bar labs theme element_text coord_flip
+#' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
 #' event_class_plot(events_df)
@@ -278,6 +291,9 @@ event_class_plot <- function(events_df) {
 #' @description Generates a bar chart displaying the average ticket price for events, grouped by genre.
 #' @param events_df A data frame containing event data, including `Min_Price`, `Max_Price`, and `Genre` columns.
 #' @return A ggplot object showing the average ticket price for each event genre.
+#' @importFrom dplyr filter group_by summarise arrange desc
+#' @importFrom ggplot2 ggplot aes geom_bar labs theme element_text coord_flip
+#' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
 #' avg_price_class_plot(events_df)
@@ -317,6 +333,9 @@ avg_price_class_plot <- function(events_df) {
 #' @description Generates a histogram showing the distribution of average ticket prices.
 #' @param events_df A data frame containing event data.
 #' @return A ggplot histogram of ticket prices.
+#' @importFrom dplyr filter mutate
+#' @importFrom ggplot2 ggplot aes geom_histogram labs theme element_text
+#' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
 #' event_price_count_plot(events_df)
@@ -353,6 +372,10 @@ event_price_count_plot <- function(events_df) {
 #' @description Generates a line plot showing the average ticket price trend for the last 200 events.
 #' @param events_df A data frame containing event data, including `Min_Price`, `Max_Price`, and `Event_Name` columns.
 #' @return An interactive ggplotly object displaying the average ticket price trend over the last 200 events.
+#' @importFrom dplyr filter mutate
+#' @importFrom ggplot2 ggplot aes geom_line geom_point labs theme element_text
+#' @importFrom plotly ggplotly
+#' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
 #' avg_event_price_line_plot(events_df)
@@ -393,6 +416,9 @@ avg_event_price_line_plot <- function(events_df) {
 #' @description Generates a bar chart displaying the distribution of event counts across different hours of the day.
 #' @param events_df A data frame containing event data, including a `Time` column in HH:MM:SS format.
 #' @return A ggplot object showing the number of events occurring at each hour of the day.
+#' @importFrom ggplot2 ggplot aes geom_bar labs theme element_text
+#' @importFrom dplyr group_by summarise arrange mutate
+#' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
 #' event_hourly_distribution_plot(events_df)
@@ -434,6 +460,9 @@ event_hourly_distribution_plot <- function(events_df) {
 #' @description Generates a bar chart displaying the number of events occurring on each day of the week.
 #' @param events_df A data frame containing event data, including a `Date` column in YYYY-MM-DD format.
 #' @return A ggplot object showing the number of events for each weekday.
+#' @importFrom ggplot2 ggplot aes geom_bar labs theme element_text
+#' @importFrom dplyr group_by summarise arrange mutate
+#' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
 #' event_day_distribution_plot(events_df)
