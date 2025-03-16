@@ -30,28 +30,34 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Install R for Linux
       - name: Install R (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt update
           sudo apt install -y r-base
 
+      # Install R for macOS
       - name: Install R (MacOS)
         if: runner.os == 'macOS'
         run: |
           brew install r
 
+      # Install R for Windows
       - name: Install R (Windows)
         if: runner.os == 'Windows'
         run: |
           choco install r.project rtools
 
+      # Install dependencies
       - name: Install dependencies
         run: Rscript -e 'install.packages(c("rcmdcheck", "testthat", "covr", "ggplot2", "httr", "jsonlite", "dplyr", "plotly"), repos="https://cloud.r-project.org")'
 
+      # Run R CMD check
       - name: Check package
         run: Rscript -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning", check_dir = "check")'
 
+      # Run tests
       - name: Run tests
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -60,6 +66,7 @@ jobs:
             Rscript -e "testthat::test_package('TicketmasterR')"
           fi
 
+      # Run code coverage
       - name: Run code coverage
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -68,9 +75,10 @@ jobs:
             Rscript -e "covr::codecov()"
           fi
 
+      # Upload check results (if failure occurs)
       - name: Upload check results (if failure occurs)
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: r-cmd-check-results
           path: check
