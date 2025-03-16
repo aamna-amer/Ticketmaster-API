@@ -33,7 +33,13 @@ head(events_df)
 }
 }
 \author{
-\strong{Maintainer}: Aamna Amer
+\strong{Maintainer}: Jason Suwito \email{jasonns@student.ubc.ca}
+
+Authors:
+\itemize{
+  \item Aamna Amer
+  \item Kelsey Strachan
+}
 
 }
 \keyword{internal}

@@ -250,9 +250,8 @@ print_ticketmaster_analysis <- function(events_df) {
 #' @description Generates a bar chart showing the number of events available per genre.
 #' @param events_df A data frame containing event data retrieved using `get_full_ticketmaster_data()`.
 #' @return A ggplot object displaying the number of events by genre.
-#' @importFrom dplyr group_by summarise arrange desc
-#' @importFrom ggplot2 ggplot aes geom_bar labs theme element_text coord_flip
-#' @importFrom dplyr %>%
+#' @import ggplot2
+#' @import dplyr
 #' @examples
 #' \dontrun{
 #' event_class_plot(events_df)
@@ -291,9 +290,8 @@ event_class_plot <- function(events_df) {
 #' @description Generates a bar chart displaying the average ticket price for events, grouped by genre.
 #' @param events_df A data frame containing event data, including `Min_Price`, `Max_Price`, and `Genre` columns.
 #' @return A ggplot object showing the average ticket price for each event genre.
-#' @importFrom dplyr filter group_by summarise arrange desc
-#' @importFrom ggplot2 ggplot aes geom_bar labs theme element_text coord_flip
-#' @importFrom dplyr %>%
+#' @import ggplot2
+#' @import dplyr
 #' @examples
 #' \dontrun{
 #' avg_price_class_plot(events_df)
@@ -333,9 +331,8 @@ avg_price_class_plot <- function(events_df) {
 #' @description Generates a histogram showing the distribution of average ticket prices.
 #' @param events_df A data frame containing event data.
 #' @return A ggplot histogram of ticket prices.
-#' @importFrom dplyr filter mutate
-#' @importFrom ggplot2 ggplot aes geom_histogram labs theme element_text
-#' @importFrom dplyr %>%
+#' @import ggplot2
+#' @import dplyr
 #' @examples
 #' \dontrun{
 #' event_price_count_plot(events_df)
@@ -372,10 +369,9 @@ event_price_count_plot <- function(events_df) {
 #' @description Generates a line plot showing the average ticket price trend for the last 200 events.
 #' @param events_df A data frame containing event data, including `Min_Price`, `Max_Price`, and `Event_Name` columns.
 #' @return An interactive ggplotly object displaying the average ticket price trend over the last 200 events.
-#' @importFrom dplyr filter mutate
-#' @importFrom ggplot2 ggplot aes geom_line geom_point labs theme element_text
+#' @import ggplot2
+#' @import dplyr
 #' @importFrom plotly ggplotly
-#' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
 #' avg_event_price_line_plot(events_df)
@@ -389,7 +385,7 @@ avg_event_price_line_plot <- function(events_df) {
     mutate(Event_Number = 1:n())
 
   p <- ggplot(events, aes(x = Event_Number, y = Avg_Price)) +
-    geom_line(color = "#d0006f", size = 0.5) +
+    geom_line(color = "#d0006f", linewidth = 0.5) +
     geom_point(aes(text = paste("Event: ", Event_Name, "<br>Event Type: ", Segment)),
                color = '#009cde', size = 0.5) +
     labs(
@@ -416,9 +412,8 @@ avg_event_price_line_plot <- function(events_df) {
 #' @description Generates a bar chart displaying the distribution of event counts across different hours of the day.
 #' @param events_df A data frame containing event data, including a `Time` column in HH:MM:SS format.
 #' @return A ggplot object showing the number of events occurring at each hour of the day.
-#' @importFrom ggplot2 ggplot aes geom_bar labs theme element_text
-#' @importFrom dplyr group_by summarise arrange mutate
-#' @importFrom dplyr %>%
+#' @import ggplot2
+#' @import dplyr
 #' @examples
 #' \dontrun{
 #' event_hourly_distribution_plot(events_df)
@@ -460,9 +455,8 @@ event_hourly_distribution_plot <- function(events_df) {
 #' @description Generates a bar chart displaying the number of events occurring on each day of the week.
 #' @param events_df A data frame containing event data, including a `Date` column in YYYY-MM-DD format.
 #' @return A ggplot object showing the number of events for each weekday.
-#' @importFrom ggplot2 ggplot aes geom_bar labs theme element_text
-#' @importFrom dplyr group_by summarise arrange mutate
-#' @importFrom dplyr %>%
+#' @import ggplot2
+#' @import dplyr
 #' @examples
 #' \dontrun{
 #' event_day_distribution_plot(events_df)
