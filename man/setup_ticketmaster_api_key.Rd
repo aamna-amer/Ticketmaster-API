@@ -13,6 +13,7 @@ To use this package, you need to set your Ticketmaster API key as an environment
 The API key must be stored as an environment variable to be used automatically in functions that require it.
 }
 \examples{
+\dontrun{
 # Set your API key (only needs to be done once per session)
 Sys.setenv(TICKETMASTER_API_KEY = "your_api_key_here")
 
@@ -22,5 +23,6 @@ print(api_key)
 
 # Now you can call functions without passing the API key each time
 # events_df <- get_full_ticketmaster_data()
+}
 
 }

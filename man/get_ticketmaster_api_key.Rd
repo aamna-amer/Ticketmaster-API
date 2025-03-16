@@ -13,6 +13,8 @@ A character string containing the API key, or stops execution if not found.
 Fetches the API key from environment variables.
 }
 \examples{
+\dontrun{
 api_key <- get_ticketmaster_api_key()
 print(api_key)
+}
 }
