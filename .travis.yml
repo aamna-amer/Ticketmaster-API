@@ -1,0 +1,15 @@
+language: r
+sudo: false
+cache: packages
+
+# Specify R package directory inside the repo
+before_install:
+  - cd TicketmasterR
+
+# Install dependencies
+install:
+  - Rscript -e 'install.packages(c("devtools", "roxygen2", "testthat", "covr"))'
+
+# Run package checks
+script:
+  - Rscript -e 'devtools::check(error_on = "warning")'
