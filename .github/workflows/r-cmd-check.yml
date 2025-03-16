@@ -1,0 +1,66 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+#
+# See https://github.com/r-lib/actions/tree/master/examples#readme for
+# additional example workflows available for the R community.
+
+name: R-CMD-check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+    name: R CMD check (${{ matrix.config.os }})
+
+    strategy:
+      matrix:
+        config:
+          - { os: macos-latest }
+          - { os: windows-latest }
+          - { os: ubuntu-latest }
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Install system dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::testthat
+            any::covr
+            any::ggplot2
+            any::httr
+            any::jsonlite
+            any::dplyr
+            any::plotly
+
+      - name: Install dependencies
+        run: Rscript -e 'install.packages(c("remotes", "rcmdcheck"))'
+
+      - name: Check package
+        run: Rscript -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "warning", check_dir = "check")'
+
+      - name: Run tests
+        run: Rscript -e 'testthat::test_package("TicketmasterR")'
+
+      - name: Run code coverage
+        run: Rscript -e 'covr::codecov()'
+
+      - name: Upload check results (if failure occurs)
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: r-cmd-check-results
+          path: check
