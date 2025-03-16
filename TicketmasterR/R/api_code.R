@@ -1,21 +1,79 @@
-library(httr)
-library(jsonlite)
-library(dplyr)
-library(ggplot2)
-library(plotly)
-
-# Makes API request
-data_request <- function(endpoint, params, api_key) {
-  url <- paste0("https://app.ticketmaster.com/discovery/v2/", endpoint)
-  params$apikey <- api_key
-  response <- GET(url, query = params)
-  if (status_code(response) != 200) {
-    stop(paste("Error fetching data:", status_code(response)))
-  }
-  content(response, "parsed", type = "application/json")
+utils::globalVariables(c(
+  "Avg_Price", "Count", "Date", "Event_Name", "Event_Number",
+  "Genre", "Hour", "Max_Price", "Min_Price", "Segment",
+  "Time", "Weekday", "reorder"
+))
+#' @title Set Up API Key for Ticketmaster
+#' @description To use this package, you need to set your Ticketmaster API key as an environment variable.
+#' @details 
+#' The API key must be stored as an environment variable to be used automatically in functions that require it.
+#' 
+#' @examples
+#' # Set your API key (only needs to be done once per session)
+#' Sys.setenv(TICKETMASTER_API_KEY = "your_api_key_here")
+#'
+#' # Retrieve the API key (example usage)
+#' api_key <- get_ticketmaster_api_key()
+#' print(api_key)
+#'
+#' # Now you can call functions without passing the API key each time
+#' # events_df <- get_full_ticketmaster_data()
+#'
+#' @export
+setup_ticketmaster_api_key <- function() {
+  message("This function does nothing. It exists to document how to set your API key.")
 }
 
-# Extracts venue information and counts
+#' @title Retrieve Ticketmaster API Key
+#' @description Fetches the API key from environment variables.
+#' @return A character string containing the API key, or stops execution if not found.
+#' @examples
+#' api_key <- get_ticketmaster_api_key()
+#' print(api_key)
+#' @export
+get_ticketmaster_api_key <- function() {
+  api_key <- Sys.getenv("TICKETMASTER_API_KEY")
+  if (api_key == "") {
+    stop("API key not found. Please set it using: Sys.setenv(TICKETMASTER_API_KEY = 'your_api_key_here')")
+  }
+  return(api_key)
+}
+
+#' @title API Request Function
+#' @description Fetches data from the Ticketmaster API using the given endpoint and parameters.
+#' @param endpoint A character string specifying the API endpoint (e.g., "events.json").
+#' @param params A list of query parameters for the API request.
+#' @param api_key A character string containing your Ticketmaster API key.
+#' @return A parsed JSON object containing the API response.
+#' @importFrom httr GET content status_code
+#' @examples
+#' \dontrun{
+#' params <- list(city = "New York")
+#' response <- data_request("events.json", params, api_key)
+#' }
+#' @export
+data_request <- function(endpoint, params, api_key) {
+  api_key <- get_ticketmaster_api_key()
+  url <- paste0("https://app.ticketmaster.com/discovery/v2/", endpoint)
+  params$apikey <- api_key
+  response <- httr::GET(url, query = params)
+  if (httr::status_code(response) != 200) {
+    stop(paste("Error fetching data:", status_code(response)))
+  }
+  httr::content(response, "parsed", type = "application/json")
+}
+
+#' @title Get Venue Information
+#' @description Extracts venue information and counts the number of events per venue.
+#' @param events_df A data frame containing event data.
+#' @return A list with the venue having the most and least events.
+#' @importFrom dplyr summarise group_by
+#' @examples
+#' \dontrun{
+#' venue_info <- get_venue_info(events_df)
+#' print(venue_info)
+#' }
+#' @export
 get_venue_info <- function(events_df) {
   venue_counts <- table(events_df$Venue)
   most_events_venue <- names(sort(venue_counts, decreasing = TRUE))[1]
@@ -23,7 +81,20 @@ get_venue_info <- function(events_df) {
   list(most_events_venue = most_events_venue, least_events_venue = least_events_venue)
 }
 
-# Isolates event with highest ticket price
+#' @title Get Event with Highest Ticket Price
+#' @description Identifies the event with the highest ticket price from the given event data.
+#' @param events_df A data frame containing event data, including a `Max_Price` column.
+#' @return A list containing:
+#' - `event`: The name of the event with the highest ticket price.
+#' - `price`: The highest ticket price.
+#' If no valid ticket prices are available, returns `NA` for both values.
+#' @importFrom dplyr filter
+#' @examples
+#' \dontrun{
+#' highest_price_info <- get_highest_ticket_price(events_df)
+#' print(highest_price_info)
+#' }
+#' @export
 get_highest_ticket_price <- function(events_df) {
   if (all(is.na(events_df$Max_Price))) return(list(event = NA, price = NA))
 
@@ -34,8 +105,20 @@ get_highest_ticket_price <- function(events_df) {
   list(event = highest_price_event, price = highest_price)
 }
 
-
-# Isolates event with lowest ticket price
+#' @title Get Event with Lowest Ticket Price
+#' @description Identifies the event with the lowest ticket price from the given event data.
+#' @param events_df A data frame containing event data, including a `Min_Price` column.
+#' @return A list containing:
+#' - `event`: The name of the event with the lowest ticket price.
+#' - `price`: The lowest ticket price.
+#' If no valid ticket prices are available, returns `NA` for both values.
+#' @importFrom dplyr filter
+#' @examples
+#' \dontrun{
+#' lowest_price_info <- get_lowest_ticket_price(events_df)
+#' print(lowest_price_info)
+#' }
+#' @export
 get_lowest_ticket_price <- function(events_df) {
   if (all(is.na(events_df$Min_Price))) return(list(event = NA, price = NA))
 
@@ -46,8 +129,23 @@ get_lowest_ticket_price <- function(events_df) {
   list(event = lowest_price_event, price = lowest_price)
 }
 
-
-# Function to run Ticketmaster analysis
+#' @title Ticketmaster Event Analysis
+#' @description Analyzes event data from Ticketmaster, including highest and lowest ticket prices and venue statistics.
+#' @param events_df A data frame containing event data retrieved using `get_full_ticketmaster_data()`.
+#' @return A list containing:
+#' - `most_events_venue`: The venue with the most events.
+#' - `least_events_venue`: The venue with the least events.
+#' - `highest_ticket_price_event`: The event with the highest ticket price.
+#' - `highest_ticket_price`: The highest ticket price.
+#' - `lowest_ticket_price_event`: The event with the lowest ticket price.
+#' - `lowest_ticket_price`: The lowest ticket price.
+#' @importFrom dplyr filter mutate summarise group_by
+#' @examples
+#' \dontrun{
+#' result <- ticketmaster_analysis(events_df)
+#' print(result)
+#' }
+#' @export
 ticketmaster_analysis <- function(events_df) {
   if (nrow(events_df) == 0) {
     stop("No events available for analysis.")
@@ -67,8 +165,26 @@ ticketmaster_analysis <- function(events_df) {
   )
 }
 
-# Function to convert API response into a clean dataframe
-get_full_ticketmaster_data <- function(api_key, city = NULL, classification_name = NULL, sort_by = NULL, size = 200) {
+#' @title Fetch and Process Ticketmaster Event Data
+#' @description Retrieves and processes event data from the Ticketmaster API.
+#' @param city (Optional) A character string specifying a city to filter events.
+#' @param classification_name (Optional) A character string to filter by event classification (e.g., "music").
+#' @param sort_by (Optional) A character string specifying sorting order (e.g., "date_asc").
+#' @param size (Optional) The number of results to return (default = 200).
+#' @return A cleaned data frame containing event details.
+#' @importFrom httr GET content status_code
+#' @importFrom jsonlite fromJSON
+#' @importFrom dplyr mutate arrange filter group_by summarise desc
+#' @importFrom dplyr %>%
+#' @examples
+#' \dontrun{
+#' events_df <- get_full_ticketmaster_data()
+#' head(events_df)
+#' }
+#' @export
+get_full_ticketmaster_data <- function(city = NULL, classification_name = NULL, sort_by = NULL, size = 200) {
+  api_key <- get_ticketmaster_api_key()
+    
   params <- list()
 
   # Only include parameters if they are specified
@@ -148,7 +264,20 @@ get_full_ticketmaster_data <- function(api_key, city = NULL, classification_name
   return(events_df)
 }
 
-# function to print results
+#' @title Print Ticketmaster Event Analysis
+#' @description Displays a summary of Ticketmaster event data, including venue and ticket price statistics.
+#' @param events_df A data frame containing event data retrieved using `get_full_ticketmaster_data()`.
+#' @return Prints the following summary to the console:
+#' - Venue with the most events.
+#' - Venue with the least events.
+#' - Event with the highest ticket price.
+#' - Event with the lowest ticket price.
+#' @importFrom dplyr filter mutate summarise group_by
+#' @examples
+#' \dontrun{
+#' print_ticketmaster_analysis(events_df)
+#' }
+#' @export
 print_ticketmaster_analysis <- function(events_df) {
   result <- ticketmaster_analysis(events_df)
   cat("Venue with the most events:", result$most_events_venue, "\n")
@@ -157,15 +286,18 @@ print_ticketmaster_analysis <- function(events_df) {
   cat("Event with the lowest ticket price:", result$lowest_ticket_price_event, "at $", result$lowest_ticket_price, "\n")
 }
 
-api_key <- "INSERT API KEY"
-city <- "New York"
-classification_name <- "music"
-
-events_df = get_full_ticketmaster_data(api_key)
-head(events_df)
-print_ticketmaster_analysis(events_df)
-
-# Plots counts of events by type for 200 events
+#' @title Plot Events by Genre
+#' @description Generates a bar chart showing the number of events available per genre.
+#' @param events_df A data frame containing event data retrieved using `get_full_ticketmaster_data()`.
+#' @return A ggplot object displaying the number of events by genre.
+#' @import ggplot2
+#' @import dplyr
+#' @importFrom stats reorder
+#' @examples
+#' \dontrun{
+#' event_class_plot(events_df)
+#' }
+#' @export
 event_class_plot <- function(events_df) {
   event_counts <- events_df %>%
     group_by(Genre) %>%
@@ -195,7 +327,18 @@ event_class_plot <- function(events_df) {
 
 }
 
-# Plots average event price by type for 200 events
+#' @title Plot Average Ticket Price by Event Type for the Last 200 Events
+#' @description Generates a bar chart displaying the average ticket price for events, grouped by genre.
+#' @param events_df A data frame containing event data, including `Min_Price`, `Max_Price`, and `Genre` columns.
+#' @return A ggplot object showing the average ticket price for each event genre.
+#' @import ggplot2
+#' @import dplyr
+#' @importFrom stats reorder
+#' @examples
+#' \dontrun{
+#' avg_price_class_plot(events_df)
+#' }
+#' @export
 avg_price_class_plot <- function(events_df) {
   avg_price <- events_df %>%
     filter(!is.na(Min_Price) & !is.na(Max_Price) & Min_Price >= 0 & Max_Price >= 0) %>%
@@ -226,7 +369,17 @@ avg_price_class_plot <- function(events_df) {
     )
 }
 
-# Plot count of events by average ticket price for last 200 events
+#' @title Histogram of Event Prices
+#' @description Generates a histogram showing the distribution of average ticket prices.
+#' @param events_df A data frame containing event data.
+#' @return A ggplot histogram of ticket prices.
+#' @import ggplot2
+#' @import dplyr
+#' @examples
+#' \dontrun{
+#' event_price_count_plot(events_df)
+#' }
+#' @export
 event_price_count_plot <- function(events_df) {
   avg_price_events <- events_df %>%
     filter(!is.na(Min_Price) & !is.na(Max_Price) & Min_Price >= 0 & Max_Price >= 0) %>%
@@ -254,7 +407,18 @@ event_price_count_plot <- function(events_df) {
            )
 }
 
-# Plot average ticket price for last 200 events
+#' @title Plot Average Ticket Price Over Last 200 Events
+#' @description Generates a line plot showing the average ticket price trend for the last 200 events.
+#' @param events_df A data frame containing event data, including `Min_Price`, `Max_Price`, and `Event_Name` columns.
+#' @return An interactive ggplotly object displaying the average ticket price trend over the last 200 events.
+#' @import ggplot2
+#' @import dplyr
+#' @importFrom plotly ggplotly
+#' @examples
+#' \dontrun{
+#' avg_event_price_line_plot(events_df)
+#' }
+#' @export
 avg_event_price_line_plot <- function(events_df) {
   events <- events_df %>%
     filter(!is.na(Min_Price) & !is.na(Max_Price) & Min_Price >= 0 & Max_Price >= 0) %>%
@@ -263,7 +427,7 @@ avg_event_price_line_plot <- function(events_df) {
     mutate(Event_Number = 1:n())
 
   p <- ggplot(events, aes(x = Event_Number, y = Avg_Price)) +
-    geom_line(color = "#d0006f", size = 0.5) +
+    geom_line(color = "#d0006f", linewidth = 0.5) +
     geom_point(aes(text = paste("Event: ", Event_Name, "<br>Event Type: ", Segment)),
                color = '#009cde', size = 0.5) +
     labs(
@@ -286,7 +450,17 @@ avg_event_price_line_plot <- function(events_df) {
   ggplotly(p)
 }
 
-# Function to plot event count distribution by hour of the day
+#' @title Plot Event Count Distribution by Hour
+#' @description Generates a bar chart displaying the distribution of event counts across different hours of the day.
+#' @param events_df A data frame containing event data, including a `Time` column in HH:MM:SS format.
+#' @return A ggplot object showing the number of events occurring at each hour of the day.
+#' @import ggplot2
+#' @import dplyr
+#' @examples
+#' \dontrun{
+#' event_hourly_distribution_plot(events_df)
+#' }
+#' @export
 event_hourly_distribution_plot <- function(events_df) {
   events_df <- events_df %>%
     filter(!is.na(Time)) %>%
@@ -319,7 +493,17 @@ event_hourly_distribution_plot <- function(events_df) {
     )
 }
 
-# Function to plot event count distribution by day of the week
+#' @title Plot Event Count Distribution by Day of the Week
+#' @description Generates a bar chart displaying the number of events occurring on each day of the week.
+#' @param events_df A data frame containing event data, including a `Date` column in YYYY-MM-DD format.
+#' @return A ggplot object showing the number of events for each weekday.
+#' @import ggplot2
+#' @import dplyr
+#' @examples
+#' \dontrun{
+#' event_day_distribution_plot(events_df)
+#' }
+#' @export
 event_day_distribution_plot <- function(events_df) {
   events_df <- events_df %>%
     filter(!is.na(Date)) %>%
@@ -351,13 +535,3 @@ event_day_distribution_plot <- function(events_df) {
       panel.border = element_blank()
     )
 }
-
-
-event_class_plot(events_df)
-avg_price_class_plot(events_df)
-
-event_price_count_plot(events_df)
-avg_event_price_line_plot(events_df)
-
-event_hourly_distribution_plot(events_df)
-event_day_distribution_plot(events_df)
