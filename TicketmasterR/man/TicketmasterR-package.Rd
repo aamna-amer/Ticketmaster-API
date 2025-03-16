@@ -13,8 +13,18 @@ retrieve ticket prices, and visualize event trends.
 \details{
 \subsection{Main Functions:}{
 \itemize{
-\item \code{get_full_ticketmaster_data()}: Fetch event data from Ticketmaster.
-\item \code{ticketmaster_analysis()}: Analyze event trends, including highest and lowest ticket prices.
+\item \code{get_full_ticketmaster_data()}: Retrieves and processes event data from the Ticketmaster API.
+\item \code{print_ticketmaster_analysis()}: Displays a summary of Ticketmaster event data, including venue and ticket price statistics.
+\item \code{ticketmaster_analysis()}: Analyzes event data from Ticketmaster, including highest and lowest ticket prices and venue statistics.
+\item \code{get_venue_info()}: Extracts venue information and counts the number of events per venue.
+\item \code{get_highest_ticket_price()}: Identifies the event with the highest ticket price from the given event data.
+\item \code{get_lowest_ticket_price()}: Identifies the event with the lowest ticket price from the given event data.
+\item \code{event_class_plot()}: Generates a bar chart showing the number of events available per genre.
+\item \code{avg_price_class_plot()}: Generates a bar chart displaying the average ticket price for events, grouped by genre.
+\item \code{event_price_count_plot()}: Generates a histogram showing the distribution of average ticket prices.
+\item \code{avg_event_price_line_plot()}: Generates a line plot showing the average ticket price trend for the last 200 events.
+\item \code{event_hourly_distribution_plot()}: Generates a bar chart displaying the distribution of event counts across different hours of the day.
+\item \code{event_day_distribution_plot()}: Generates a bar chart displaying the number of events occurring on each day of the week.
 }
 }
 
