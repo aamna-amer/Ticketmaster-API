@@ -9,6 +9,7 @@ utils::globalVariables(c(
 #' The API key must be stored as an environment variable to be used automatically in functions that require it.
 #' 
 #' @examples
+#' \dontrun{
 #' # Set your API key (only needs to be done once per session)
 #' Sys.setenv(TICKETMASTER_API_KEY = "your_api_key_here")
 #'
@@ -18,6 +19,7 @@ utils::globalVariables(c(
 #'
 #' # Now you can call functions without passing the API key each time
 #' # events_df <- get_full_ticketmaster_data()
+#' }
 #'
 #' @export
 setup_ticketmaster_api_key <- function() {
@@ -28,8 +30,10 @@ setup_ticketmaster_api_key <- function() {
 #' @description Fetches the API key from environment variables.
 #' @return A character string containing the API key, or stops execution if not found.
 #' @examples
+#' \dontrun{
 #' api_key <- get_ticketmaster_api_key()
 #' print(api_key)
+#' }
 #' @export
 get_ticketmaster_api_key <- function() {
   api_key <- Sys.getenv("TICKETMASTER_API_KEY")
@@ -124,11 +128,11 @@ get_highest_ticket_price <- function(events_df) {
   }
   
   if (all(is.na(events_df$Max_Price))) return(list(event = NA, price = NA))
-
+  
   highest_price_index <- which.max(events_df$Max_Price)
   highest_price_event <- events_df$Event_Name[highest_price_index]
   highest_price <- events_df$Max_Price[highest_price_index]
-
+  
   list(event = highest_price_event, price = highest_price)
 }
 
@@ -165,11 +169,11 @@ get_lowest_ticket_price <- function(events_df) {
   }
   
   if (all(is.na(events_df$Min_Price))) return(list(event = NA, price = NA))
-
+  
   lowest_price_index <- which.min(events_df$Min_Price)
   lowest_price_event <- events_df$Event_Name[lowest_price_index]
   lowest_price <- events_df$Min_Price[lowest_price_index]
-
+  
   list(event = lowest_price_event, price = lowest_price)
 }
 
@@ -212,11 +216,11 @@ ticketmaster_analysis <- function(events_df) {
   if (!is.numeric(events_df$Max_Price) || !is.numeric(events_df$Min_Price)) {
     stop("Error: 'Max_Price' and 'Min_Price' must be numeric values.")
   }
-
+  
   venue_info <- get_venue_info(events_df)
   highest_price_data <- get_highest_ticket_price(events_df)
   lowest_price_data <- get_lowest_ticket_price(events_df)
-
+  
   list(
     most_events_venue = venue_info$most_events_venue,
     least_events_venue = venue_info$least_events_venue,
@@ -263,9 +267,9 @@ get_full_ticketmaster_data <- function(city = NULL, classification_name = NULL, 
   }
   
   api_key <- get_ticketmaster_api_key()
-    
+  
   params <- list()
-
+  
   # Only include parameters if they are specified
   
   if (!is.null(city)) {
@@ -274,17 +278,17 @@ get_full_ticketmaster_data <- function(city = NULL, classification_name = NULL, 
   if (!is.null(classification_name)) {
     params$classificationName <- classification_name
   }
-
+  
   # Fetch data from API
   data <- data_request("events.json", params, api_key)
-
+  
   # Check if events exist
   if (is.null(data$`_embedded`$events)) {
     stop("No events found for the given parameters.")
   }
-
+  
   events <- data$`_embedded`$events
-
+  
   # Extract key details into a dataframe
   events_df <- data.frame(
     Event_Name = sapply(events, function(e) e$name),
@@ -317,7 +321,7 @@ get_full_ticketmaster_data <- function(city = NULL, classification_name = NULL, 
       Min_Price = as.numeric(Min_Price),
       Max_Price = as.numeric(Max_Price)
     )
-
+  
   # Apply sorting based on user input
   if (!is.null(sort_by)) {
     if (sort_by == "date_asc") {
@@ -401,7 +405,7 @@ event_class_plot <- function(events_df) {
     group_by(Genre) %>%
     summarise(Count = n()) %>%
     arrange(desc(Count))
-
+  
   ggplot(event_counts, aes(x = reorder(Genre, -Count), y = Count)) +
     geom_bar(stat = "identity", fill = "#d0006f", color = "#009cde", alpha = 0.8) +
     coord_flip() +
@@ -422,7 +426,7 @@ event_class_plot <- function(events_df) {
       panel.grid.minor = element_line(color = "#009cde", linetype = "dotted"),
       panel.border = element_blank()
     )
-
+  
 }
 
 #' @title Plot Average Ticket Price by Event Type for the Last 200 Events
@@ -461,7 +465,7 @@ avg_price_class_plot <- function(events_df) {
     summarise(Avg_Price = mean(c(Min_Price, Max_Price), na.rm = TRUE)) %>%
     filter(!is.na(Avg_Price) & Avg_Price >= 0) %>%
     arrange(desc(Avg_Price))
-
+  
   ggplot(avg_price, aes(x = reorder(Genre, -Avg_Price), y = Avg_Price)) +
     geom_bar(stat = "identity", fill = "#d0006f", color = "#009cde", alpha = 0.8) +
     coord_flip() +
@@ -517,26 +521,26 @@ event_price_count_plot <- function(events_df) {
     filter(!is.na(Min_Price) & !is.na(Max_Price) & Min_Price >= 0 & Max_Price >= 0) %>%
     mutate(Avg_Price = (Min_Price + Max_Price) / 2) %>%
     filter(!is.na(Avg_Price) & Avg_Price >= 0 & Avg_Price < 1001)
-
+  
   ggplot(avg_price_events, aes(x = Avg_Price)) +
-           geom_histogram(binwidth = 8, fill = '#009cde') +
-           labs(
-             title = "Event Count by Average Ticket Price Under $1000 for Last 200 Events",
-             x = "Average Ticket Price (USD)",
-             y = "Count"
-           ) +
-           theme(
-             axis.text.x = element_text(angle = 0, hjust = 1, color = "#414141", size = 9),
-             axis.text.y = element_text(color = "#414141", size = 9),
-             plot.title = element_text(size = 16, face = "bold", hjust = 0.5, color = "#414141"),
-             axis.title.x = element_text(size = 12, color = "#414141"),
-             axis.title.y = element_text(size = 12, color = "#414141"),
-             plot.background = element_rect(fill = "#ffffff"),
-             panel.background = element_rect(fill = "#ffffff"),
-             panel.grid.major = element_line(color = "#b7c9d3", linetype = "dotted"),
-             panel.grid.minor = element_line(color = "#009cde", linetype = "dotted"),
-             panel.border = element_blank()
-           )
+    geom_histogram(binwidth = 8, fill = '#009cde') +
+    labs(
+      title = "Event Count by Average Ticket Price Under $1000 for Last 200 Events",
+      x = "Average Ticket Price (USD)",
+      y = "Count"
+    ) +
+    theme(
+      axis.text.x = element_text(angle = 0, hjust = 1, color = "#414141", size = 9),
+      axis.text.y = element_text(color = "#414141", size = 9),
+      plot.title = element_text(size = 16, face = "bold", hjust = 0.5, color = "#414141"),
+      axis.title.x = element_text(size = 12, color = "#414141"),
+      axis.title.y = element_text(size = 12, color = "#414141"),
+      plot.background = element_rect(fill = "#ffffff"),
+      panel.background = element_rect(fill = "#ffffff"),
+      panel.grid.major = element_line(color = "#b7c9d3", linetype = "dotted"),
+      panel.grid.minor = element_line(color = "#009cde", linetype = "dotted"),
+      panel.border = element_blank()
+    )
 }
 
 #' @title Plot Average Ticket Price Over Last 200 Events
@@ -574,7 +578,7 @@ avg_event_price_line_plot <- function(events_df) {
     mutate(Avg_Price = (Min_Price + Max_Price) / 2) %>%
     filter(!is.na(Avg_Price) & Avg_Price >= 0) %>%
     mutate(Event_Number = 1:n())
-
+  
   p <- ggplot(events, aes(x = Event_Number, y = Avg_Price)) +
     geom_line(color = "#d0006f", linewidth = 0.5) +
     geom_point(aes(text = paste("Event: ", Event_Name, "<br>Event Type: ", Segment)),
