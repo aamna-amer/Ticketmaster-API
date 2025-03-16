@@ -1,3 +1,44 @@
+utils::globalVariables(c(
+  "Avg_Price", "Count", "Date", "Event_Name", "Event_Number",
+  "Genre", "Hour", "Max_Price", "Min_Price", "Segment",
+  "Time", "Weekday", "reorder"
+))
+#' @title Set Up API Key for Ticketmaster
+#' @description To use this package, you need to set your Ticketmaster API key as an environment variable.
+#' @details 
+#' The API key must be stored as an environment variable to be used automatically in functions that require it.
+#' 
+#' @examples
+#' # Set your API key (only needs to be done once per session)
+#' Sys.setenv(TICKETMASTER_API_KEY = "your_api_key_here")
+#'
+#' # Retrieve the API key (example usage)
+#' api_key <- get_ticketmaster_api_key()
+#' print(api_key)
+#'
+#' # Now you can call functions without passing the API key each time
+#' events_df <- get_full_ticketmaster_data()
+#'
+#' @export
+setup_ticketmaster_api_key <- function() {
+  message("This function does nothing. It exists to document how to set your API key.")
+}
+
+#' @title Retrieve Ticketmaster API Key
+#' @description Fetches the API key from environment variables.
+#' @return A character string containing the API key, or stops execution if not found.
+#' @examples
+#' api_key <- get_ticketmaster_api_key()
+#' print(api_key)
+#' @export
+get_ticketmaster_api_key <- function() {
+  api_key <- Sys.getenv("TICKETMASTER_API_KEY")
+  if (api_key == "") {
+    stop("API key not found. Please set it using: Sys.setenv(TICKETMASTER_API_KEY = 'your_api_key_here')")
+  }
+  return(api_key)
+}
+
 #' @title API Request Function
 #' @description Fetches data from the Ticketmaster API using the given endpoint and parameters.
 #' @param endpoint A character string specifying the API endpoint (e.g., "events.json").
@@ -7,12 +48,12 @@
 #' @importFrom httr GET content status_code
 #' @examples
 #' \dontrun{
-#' api_key <- "YOUR_API_KEY"
 #' params <- list(city = "New York")
 #' response <- data_request("events.json", params, api_key)
 #' }
 #' @export
 data_request <- function(endpoint, params, api_key) {
+  api_key <- get_ticketmaster_api_key()
   url <- paste0("https://app.ticketmaster.com/discovery/v2/", endpoint)
   params$apikey <- api_key
   response <- httr::GET(url, query = params)
@@ -88,7 +129,6 @@ get_lowest_ticket_price <- function(events_df) {
   list(event = lowest_price_event, price = lowest_price)
 }
 
-
 #' @title Ticketmaster Event Analysis
 #' @description Analyzes event data from Ticketmaster, including highest and lowest ticket prices and venue statistics.
 #' @param events_df A data frame containing event data retrieved using `get_full_ticketmaster_data()`.
@@ -139,12 +179,13 @@ ticketmaster_analysis <- function(events_df) {
 #' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
-#' api_key <- "YOUR_API_KEY"
-#' events_df <- get_full_ticketmaster_data(api_key, city = "New York")
+#' events_df <- get_full_ticketmaster_data()
 #' head(events_df)
 #' }
 #' @export
-get_full_ticketmaster_data <- function(api_key, city = NULL, classification_name = NULL, sort_by = NULL, size = 200) {
+get_full_ticketmaster_data <- function(city = NULL, classification_name = NULL, sort_by = NULL, size = 200) {
+  api_key <- get_ticketmaster_api_key()
+    
   params <- list()
 
   # Only include parameters if they are specified
@@ -252,6 +293,7 @@ print_ticketmaster_analysis <- function(events_df) {
 #' @return A ggplot object displaying the number of events by genre.
 #' @import ggplot2
 #' @import dplyr
+#' @importFrom stats reorder
 #' @examples
 #' \dontrun{
 #' event_class_plot(events_df)
@@ -292,6 +334,7 @@ event_class_plot <- function(events_df) {
 #' @return A ggplot object showing the average ticket price for each event genre.
 #' @import ggplot2
 #' @import dplyr
+#' @importFrom stats reorder
 #' @examples
 #' \dontrun{
 #' avg_price_class_plot(events_df)

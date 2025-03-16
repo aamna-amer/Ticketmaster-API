@@ -8,7 +8,7 @@ Authors@R:
       person("Kelsey", "Strachan", role = c("aut"))
     )
 Description: An R package for accessing and analyzing event data from the Ticketmaster API. Users can retrieve event listings by city, filter by categories, and generate insightful analysis and visualizations.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports: httr, jsonlite, dplyr, ggplot2, plotly

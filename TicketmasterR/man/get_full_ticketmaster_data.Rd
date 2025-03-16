@@ -5,7 +5,6 @@
 \title{Fetch and Process Ticketmaster Event Data}
 \usage{
 get_full_ticketmaster_data(
-  api_key,
   city = NULL,
   classification_name = NULL,
   sort_by = NULL,
@@ -13,8 +12,6 @@ get_full_ticketmaster_data(
 )
 }
 \arguments{
-\item{api_key}{A character string containing your Ticketmaster API key.}
-
 \item{city}{(Optional) A character string specifying a city to filter events.}
 
 \item{classification_name}{(Optional) A character string to filter by event classification (e.g., "music").}
@@ -22,6 +19,8 @@ get_full_ticketmaster_data(
 \item{sort_by}{(Optional) A character string specifying sorting order (e.g., "date_asc").}
 
 \item{size}{(Optional) The number of results to return (default = 200).}
+
+\item{api_key}{A character string containing your Ticketmaster API key.}
 }
 \value{
 A cleaned data frame containing event details.
@@ -31,8 +30,7 @@ Retrieves and processes event data from the Ticketmaster API.
 }
 \examples{
 \dontrun{
-api_key <- "YOUR_API_KEY"
-events_df <- get_full_ticketmaster_data(api_key, city = "New York")
+events_df <- get_full_ticketmaster_data()
 head(events_df)
 }
 }

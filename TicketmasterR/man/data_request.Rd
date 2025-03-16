@@ -4,7 +4,7 @@
 \alias{data_request}
 \title{API Request Function}
 \usage{
-data_request(endpoint, params, api_key)
+data_request(endpoint, params)
 }
 \arguments{
 \item{endpoint}{A character string specifying the API endpoint (e.g., "events.json").}
@@ -21,8 +21,7 @@ Fetches data from the Ticketmaster API using the given endpoint and parameters.
 }
 \examples{
 \dontrun{
-api_key <- "YOUR_API_KEY"
 params <- list(city = "New York")
-response <- data_request("events.json", params, api_key)
+response <- data_request("events.json", params)
 }
 }
