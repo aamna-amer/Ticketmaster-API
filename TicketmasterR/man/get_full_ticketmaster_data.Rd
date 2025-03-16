@@ -19,8 +19,6 @@ get_full_ticketmaster_data(
 \item{sort_by}{(Optional) A character string specifying sorting order (e.g., "date_asc").}
 
 \item{size}{(Optional) The number of results to return (default = 200).}
-
-\item{api_key}{A character string containing your Ticketmaster API key.}
 }
 \value{
 A cleaned data frame containing event details.

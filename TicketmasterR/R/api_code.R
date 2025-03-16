@@ -17,7 +17,7 @@ utils::globalVariables(c(
 #' print(api_key)
 #'
 #' # Now you can call functions without passing the API key each time
-#' events_df <- get_full_ticketmaster_data()
+#' # events_df <- get_full_ticketmaster_data()
 #'
 #' @export
 setup_ticketmaster_api_key <- function() {
@@ -167,7 +167,6 @@ ticketmaster_analysis <- function(events_df) {
 
 #' @title Fetch and Process Ticketmaster Event Data
 #' @description Retrieves and processes event data from the Ticketmaster API.
-#' @param api_key A character string containing your Ticketmaster API key.
 #' @param city (Optional) A character string specifying a city to filter events.
 #' @param classification_name (Optional) A character string to filter by event classification (e.g., "music").
 #' @param sort_by (Optional) A character string specifying sorting order (e.g., "date_asc").

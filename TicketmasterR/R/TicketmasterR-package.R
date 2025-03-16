@@ -11,12 +11,11 @@
 #' ## Getting Started:
 #' To start using the package, set your API key:
 #' ```
-#' api_key <- "YOUR API KEY"
+#' sys.setenv(TICKETMASTER_API_KEY = "your_api_key_here")
 #' ```
 #' Then, fetch event data:
 #' ```
-#' events_df <- get_full_ticketmaster_data(api_key)
-#' head(events_df)
+#' events_df <- get_full_ticketmaster_data()
 #' ```
 #'
 #' @keywords internal

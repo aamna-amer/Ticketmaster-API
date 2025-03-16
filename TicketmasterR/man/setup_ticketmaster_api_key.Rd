@@ -21,6 +21,6 @@ api_key <- get_ticketmaster_api_key()
 print(api_key)
 
 # Now you can call functions without passing the API key each time
-events_df <- get_full_ticketmaster_data()
+# events_df <- get_full_ticketmaster_data()
 
 }

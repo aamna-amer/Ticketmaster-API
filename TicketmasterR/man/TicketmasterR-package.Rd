@@ -22,24 +22,17 @@ retrieve ticket prices, and visualize event trends.
 
 To start using the package, set your API key:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{api_key <- "YOUR API KEY"
+\if{html}{\out{<div class="sourceCode">}}\preformatted{sys.setenv(TICKETMASTER_API_KEY = "your_api_key_here")
 }\if{html}{\out{</div>}}
 
 Then, fetch event data:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{events_df <- get_full_ticketmaster_data(api_key)
-head(events_df)
+\if{html}{\out{<div class="sourceCode">}}\preformatted{events_df <- get_full_ticketmaster_data()
 }\if{html}{\out{</div>}}
 }
 }
 \author{
-\strong{Maintainer}: Jason Suwito \email{jasonns@student.ubc.ca}
-
-Authors:
-\itemize{
-  \item Aamna Amer
-  \item Kelsey Strachan
-}
+\strong{Maintainer}: Aamna Amer - Jason Suwito - Kelsey Strachan \email{jasonns@student.ubc.ca}
 
 }
 \keyword{internal}

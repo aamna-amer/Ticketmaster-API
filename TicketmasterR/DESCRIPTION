@@ -1,12 +1,7 @@
 Package: TicketmasterR
 Title: R Wrapper for Ticketmaster API
 Version: 0.1.0
-Authors@R: 
-    c(
-      person("Aamna", "Amer", role = c("aut")),
-      person("Jason", "Suwito", email = "jasonns@student.ubc.ca", role = c("aut", "cre")),
-      person("Kelsey", "Strachan", role = c("aut"))
-    )
+Authors@R: person("Aamna Amer - Jason Suwito - Kelsey Strachan", email = "jasonns@student.ubc.ca", role = c("aut", "cre"))
 Description: An R package for accessing and analyzing event data from the Ticketmaster API. Users can retrieve event listings by city, filter by categories, and generate insightful analysis and visualizations.
 License: MIT + file LICENSE
 Encoding: UTF-8
