@@ -78,6 +78,12 @@ jobs:
       - name: Run code coverage
         run: Rscript -e 'covr::codecov()'
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: aamna-amer/TicketmasterR
+
       - name: Upload check results (if failure occurs)
         if: failure()
         uses: actions/upload-artifact@v4
