@@ -60,6 +60,7 @@ data_request <- function(endpoint, params, api_key) {
   api_key <- get_ticketmaster_api_key()
   url <- paste0("https://app.ticketmaster.com/discovery/v2/", endpoint)
   params$apikey <- api_key
+  Sys.sleep(0.3)
   response <- httr::GET(url, query = params)
   if (httr::status_code(response) != 200) {
     stop(paste("Error fetching data:", status_code(response)))
