@@ -252,11 +252,6 @@ get_full_ticketmaster_data <- function(city = NULL, classification_name = NULL, 
 
   params <- list()
 
-  # Validate API key
-  if (is.null(api_key) || api_key == "") {
-    stop("Error: API key is missing or invalid.")
-  }
-
   # Validate size parameter
   if(size <= 200 && size >= 1){
     params$size <- as.character(size) # API only accepts size as string
