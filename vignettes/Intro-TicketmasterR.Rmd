@@ -1,0 +1,131 @@
+---
+title: "Introduction to TicketmasterR"
+author: "Aamna Amer, Jason Samuel Suwito, Kelsey Strachan"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{my_vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## About the Package
+
+`TicketmasterR` is an R wrapper package for the [Ticketmaster API](https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/)
+
+> This API offers access to content from various platforms, including Ticketmaster, Universe, FrontGate Tickets, and Ticketmaster Resale (TMR), with events from all sources returned by default. With coverage of over 230k events across countries like the United States, Canada, Mexico, Australia, New Zealand, the United Kingdom, Ireland, and other European nations, the API continuously adds more events and expands to additional countries. 
+
+This R package implements the Discovery API, provides functions to interact with the 
+Ticketmaster API, allowing users to fetch and analyze event data, retrieve ticket prices, and visualize event trends.
+
+Users are encouraged to sign up for their own [API key](https://developer.ticketmaster.com/products-and-docs/apis/getting-started/)
+
+## Package Install
+
+'TicketmasterR' is available on [Github](https://github.com/aamna-amer/TicketmasterR):
+
+```r
+devtools::install_github("aamna-amer/TicketmasterR")
+```
+
+_Note:_ To use this package, you need to set your Ticketmaster API key as an environment variable.
+
+```r
+Sys.setenv(TICKETMASTER_API_KEY = "your_api_key_here")
+```
+
+`get_ticketmaster_api_key()` allows for easy access of your key.
+
+## Load the Package
+
+```{r setup}
+library(TicketmasterR)
+```
+
+To access the documentation for the entire package, you can run the following command in your R console:
+
+```r
+help(package = "TicketmasterR")
+```
+This will show a list of all the functions available to you.
+
+You can also view documentation for a specific function by typing `?function_name` in the R console. For example, if you wanted to view documentation for `get_venue_info()`, you would run:
+
+```r
+?get_venue_info()
+```
+
+## Fetch Data
+
+Load in your key:
+
+```{r}
+api_key <- get_ticketmaster_api_key()
+```
+
+`get_full_ticketmaster_data(city, classification_name, sort_by, size)` retrieves and processes event data from the Ticketmaster API and returns a cleaned data frame with event details. Passing no parameters will just return the last 200 events. Parameters are optional and include city (character string specifying a city to filter events), classification_name (character string to filter by event classification), sort_by (character string specifying sorting order), and size (number of results to return). See documentation for more details.
+
+```{r}
+events_df <- get_full_ticketmaster_data()
+head(events_df)
+```
+
+## Event Analysis
+
+While there are individual functions for analysis, `print_ticketmaster_analysis(events_df)` will provide a summary of key event and ticket statistics:
+
+```{r}
+print_ticketmaster_analysis(events_df)
+```
+
+## Event-based Analysis and Visuals
+
+If we want to visualize the number of events by event type, we can do so by calling:
+
+```{r fig.width=8, fig.height=6}
+event_class_plot(events_df)
+```
+
+We can even visualize the average ticket price based on event type by calling:
+
+```{r fig.width=8, fig.height=6}
+avg_price_class_plot(events_df)
+```
+
+## Ticket-based Analysis and Visuals
+
+If we are interested in the distribution of average ticket prices, the following function will do so:
+
+```{r fig.width=8, fig.height=6}
+event_price_count_plot(events_df)
+```
+
+We can visualize the trend of the average ticket price as well by calling:
+
+```{r fig.width=8, fig.height=6}
+avg_event_price_line_plot(events_df)
+```
+
+## Time-based Analysis and Visuals
+
+Finally, we can plot the event count distribution by the hour:
+
+```{r fig.width=8, fig.height=6}
+event_hourly_distribution_plot(events_df)
+```
+
+Additionally, we can plot this distribution by day of the week:
+
+```{r fig.width=8, fig.height=6}
+event_day_distribution_plot(events_df)
+```
+
+## Rate Limit
+
+The Discovery API key is issued with 5000 API calls per day, with a rate limit imposed of 5 requests per second

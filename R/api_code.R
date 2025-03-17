@@ -5,9 +5,9 @@ utils::globalVariables(c(
 ))
 #' @title Set Up API Key for Ticketmaster
 #' @description To use this package, you need to set your Ticketmaster API key as an environment variable.
-#' @details 
+#' @details
 #' The API key must be stored as an environment variable to be used automatically in functions that require it.
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Set your API key (only needs to be done once per session)
@@ -83,12 +83,12 @@ get_venue_info <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df)) {
     stop("Error: Input must be a non-null data frame.")
   }
-  
+
   # Check if 'Venue' column exists
   if (!"Venue" %in% colnames(events_df)) {
     stop("Error: Data frame must contain a 'Venue' column.")
   }
-  
+
   venue_counts <- table(events_df$Venue)
   most_events_venue <- names(sort(venue_counts, decreasing = TRUE))[1]
   least_events_venue <- names(sort(venue_counts, decreasing = FALSE))[1]
@@ -114,25 +114,25 @@ get_highest_ticket_price <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df)) {
     stop("Error: Input must be a non-null data frame.")
   }
-  
+
   # Check if required columns exist
   required_columns <- c("Max_Price", "Event_Name")
   missing_columns <- setdiff(required_columns, colnames(events_df))
   if (length(missing_columns) > 0) {
     stop(paste("Error: Data frame is missing required columns:", paste(missing_columns, collapse = ", ")))
   }
-  
+
   # Check if 'Max_Price' column is numeric
   if (!is.numeric(events_df$Max_Price)) {
     stop("Error: 'Max_Price' column must be numeric.")
   }
-  
+
   if (all(is.na(events_df$Max_Price))) return(list(event = NA, price = NA))
-  
+
   highest_price_index <- which.max(events_df$Max_Price)
   highest_price_event <- events_df$Event_Name[highest_price_index]
   highest_price <- events_df$Max_Price[highest_price_index]
-  
+
   list(event = highest_price_event, price = highest_price)
 }
 
@@ -155,25 +155,25 @@ get_lowest_ticket_price <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df)) {
     stop("Error: Input must be a non-null data frame.")
   }
-  
+
   # Check if required columns exist
   required_columns <- c("Min_Price", "Event_Name")
   missing_columns <- setdiff(required_columns, colnames(events_df))
   if (length(missing_columns) > 0) {
     stop(paste("Error: Data frame is missing required columns:", paste(missing_columns, collapse = ", ")))
   }
-  
+
   # Check if 'Min_Price' column is numeric
   if (!is.numeric(events_df$Min_Price)) {
     stop("Error: 'Min_Price' column must be numeric.")
   }
-  
+
   if (all(is.na(events_df$Min_Price))) return(list(event = NA, price = NA))
-  
+
   lowest_price_index <- which.min(events_df$Min_Price)
   lowest_price_event <- events_df$Event_Name[lowest_price_index]
   lowest_price <- events_df$Min_Price[lowest_price_index]
-  
+
   list(event = lowest_price_event, price = lowest_price)
 }
 
@@ -199,28 +199,28 @@ ticketmaster_analysis <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df)) {
     stop("Error: Input must be a non-null data frame.")
   }
-  
+
   # Check if required columns exist
   required_columns <- c("Venue", "Max_Price", "Min_Price", "Event_Name")
   missing_columns <- setdiff(required_columns, colnames(events_df))
   if (length(missing_columns) > 0) {
     stop(paste("Error: Data frame is missing required columns:", paste(missing_columns, collapse = ", ")))
   }
-  
+
   # Check if the data frame is empty
   if (nrow(events_df) == 0 || all(is.na(events_df))) {
     stop("Error: No events available for analysis.")
   }
-  
+
   # Check if ticket price columns are numeric
   if (!is.numeric(events_df$Max_Price) || !is.numeric(events_df$Min_Price)) {
     stop("Error: 'Max_Price' and 'Min_Price' must be numeric values.")
   }
-  
+
   venue_info <- get_venue_info(events_df)
   highest_price_data <- get_highest_ticket_price(events_df)
   lowest_price_data <- get_lowest_ticket_price(events_df)
-  
+
   list(
     most_events_venue = venue_info$most_events_venue,
     least_events_venue = venue_info$least_events_venue,
@@ -249,46 +249,42 @@ ticketmaster_analysis <- function(events_df) {
 #' }
 #' @export
 get_full_ticketmaster_data <- function(city = NULL, classification_name = NULL, sort_by = NULL, size = 200) {
+
+  params <- list()
+
   # Validate API key
   if (is.null(api_key) || api_key == "") {
     stop("Error: API key is missing or invalid.")
   }
-  
+
   # Validate size parameter
   if(size <= 200 && size >= 1){
     params$size <- as.character(size) # API only accepts size as string
   } else {
     stop("Size must be between 200 and 1 inclusive.")
   }
-  
-  # Check if events exist in the response
-  if (is.null(data$`_embedded`$events)) {
-    stop("No events found for the given parameters.")
-  }
-  
+
   api_key <- get_ticketmaster_api_key()
-  
-  params <- list()
-  
+
   # Only include parameters if they are specified
-  
+
   if (!is.null(city)) {
     params$city <- city
   }
   if (!is.null(classification_name)) {
     params$classificationName <- classification_name
   }
-  
+
   # Fetch data from API
   data <- data_request("events.json", params, api_key)
-  
+
   # Check if events exist
   if (is.null(data$`_embedded`$events)) {
     stop("No events found for the given parameters.")
   }
-  
+
   events <- data$`_embedded`$events
-  
+
   # Extract key details into a dataframe
   events_df <- data.frame(
     Event_Name = sapply(events, function(e) e$name),
@@ -321,7 +317,7 @@ get_full_ticketmaster_data <- function(city = NULL, classification_name = NULL, 
       Min_Price = as.numeric(Min_Price),
       Max_Price = as.numeric(Max_Price)
     )
-  
+
   # Apply sorting based on user input
   if (!is.null(sort_by)) {
     if (sort_by == "date_asc") {
@@ -362,7 +358,7 @@ print_ticketmaster_analysis <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df) || nrow(events_df) == 0) {
     stop("Error: events_df must be a non-null data frame with at least one event.")
   }
-  
+
   # Safely call ticketmaster_analysis() and catch errors
   result <- tryCatch({
     ticketmaster_analysis(events_df)
@@ -370,7 +366,7 @@ print_ticketmaster_analysis <- function(events_df) {
     cat("Error: Unable to perform analysis. Reason:", e$message, "\n")
     return(NULL)
   })
-  
+
   result <- ticketmaster_analysis(events_df)
   cat("Venue with the most events:", result$most_events_venue, "\n")
   cat("Venue with the least events:", result$least_events_venue, "\n")
@@ -395,17 +391,17 @@ event_class_plot <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df) || nrow(events_df) == 0) {
     stop("Error: events_df must be a non-null data frame with at least one event.")
   }
-  
+
   # Ensure the "Genre" column exists
   if (!"Genre" %in% colnames(events_df)) {
     stop("Error: The data frame must contain a 'Genre' column.")
   }
-  
+
   event_counts <- events_df %>%
     group_by(Genre) %>%
     summarise(Count = n()) %>%
     arrange(desc(Count))
-  
+
   ggplot(event_counts, aes(x = reorder(Genre, -Count), y = Count)) +
     geom_bar(stat = "identity", fill = "#d0006f", color = "#009cde", alpha = 0.8) +
     coord_flip() +
@@ -426,7 +422,7 @@ event_class_plot <- function(events_df) {
       panel.grid.minor = element_line(color = "#009cde", linetype = "dotted"),
       panel.border = element_blank()
     )
-  
+
 }
 
 #' @title Plot Average Ticket Price by Event Type for the Last 200 Events
@@ -446,26 +442,26 @@ avg_price_class_plot <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df) || nrow(events_df) == 0) {
     stop("Error: events_df must be a non-null data frame with at least one event.")
   }
-  
+
   # Ensure required columns exist
   required_columns <- c("Genre", "Min_Price", "Max_Price")
   missing_columns <- setdiff(required_columns, colnames(events_df))
   if (length(missing_columns) > 0) {
     stop(paste("Error: Missing required columns:", paste(missing_columns, collapse = ", ")))
   }
-  
+
   # Ensure numeric values for price columns
   if (!is.numeric(events_df$Min_Price) || !is.numeric(events_df$Max_Price)) {
     stop("Error: 'Min_Price' and 'Max_Price' must be numeric values.")
   }
-  
+
   avg_price <- events_df %>%
     filter(!is.na(Min_Price) & !is.na(Max_Price) & Min_Price >= 0 & Max_Price >= 0) %>%
     group_by(Genre) %>%
     summarise(Avg_Price = mean(c(Min_Price, Max_Price), na.rm = TRUE)) %>%
     filter(!is.na(Avg_Price) & Avg_Price >= 0) %>%
     arrange(desc(Avg_Price))
-  
+
   ggplot(avg_price, aes(x = reorder(Genre, -Avg_Price), y = Avg_Price)) +
     geom_bar(stat = "identity", fill = "#d0006f", color = "#009cde", alpha = 0.8) +
     coord_flip() +
@@ -504,24 +500,24 @@ event_price_count_plot <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df) || nrow(events_df) == 0) {
     stop("Error: events_df must be a non-null data frame with at least one event.")
   }
-  
+
   # Ensure required columns exist
   required_columns <- c("Min_Price", "Max_Price")
   missing_columns <- setdiff(required_columns, colnames(events_df))
   if (length(missing_columns) > 0) {
     stop(paste("Error: Missing required columns:", paste(missing_columns, collapse = ", ")))
   }
-  
+
   # Ensure Min_Price and Max_Price are numeric
   if (!is.numeric(events_df$Min_Price) || !is.numeric(events_df$Max_Price)) {
     stop("Error: 'Min_Price' and 'Max_Price' must be numeric values.")
   }
-  
+
   avg_price_events <- events_df %>%
     filter(!is.na(Min_Price) & !is.na(Max_Price) & Min_Price >= 0 & Max_Price >= 0) %>%
     mutate(Avg_Price = (Min_Price + Max_Price) / 2) %>%
     filter(!is.na(Avg_Price) & Avg_Price >= 0 & Avg_Price < 1001)
-  
+
   ggplot(avg_price_events, aes(x = Avg_Price)) +
     geom_histogram(binwidth = 8, fill = '#009cde') +
     labs(
@@ -560,29 +556,28 @@ avg_event_price_line_plot <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df) || nrow(events_df) == 0) {
     stop("Error: events_df must be a non-null data frame with at least one event.")
   }
-  
+
   # Ensure required columns exist
   required_columns <- c("Event_Name", "Segment", "Min_Price", "Max_Price")
   missing_columns <- setdiff(required_columns, colnames(events_df))
   if (length(missing_columns) > 0) {
     stop(paste("Error: Missing required columns:", paste(missing_columns, collapse = ", ")))
   }
-  
+
   # Ensure Min_Price and Max_Price are numeric
   if (!is.numeric(events_df$Min_Price) || !is.numeric(events_df$Max_Price)) {
     stop("Error: 'Min_Price' and 'Max_Price' must be numeric values.")
   }
-  
+
   events <- events_df %>%
     filter(!is.na(Min_Price) & !is.na(Max_Price) & Min_Price >= 0 & Max_Price >= 0) %>%
     mutate(Avg_Price = (Min_Price + Max_Price) / 2) %>%
     filter(!is.na(Avg_Price) & Avg_Price >= 0) %>%
     mutate(Event_Number = 1:n())
-  
+
   p <- ggplot(events, aes(x = Event_Number, y = Avg_Price)) +
     geom_line(color = "#d0006f", linewidth = 0.5) +
-    geom_point(aes(text = paste("Event: ", Event_Name, "<br>Event Type: ", Segment)),
-               color = '#009cde', size = 0.5) +
+    geom_point(color = '#009cde', size = 0.5) +
     labs(
       title = "Average Ticket Price for Last 200 Events",
       x = "Event",
@@ -600,7 +595,16 @@ avg_event_price_line_plot <- function(events_df) {
       panel.grid.minor = element_line(color = "#009cde", linetype = "dotted"),
       panel.border = element_blank()
     )
-  ggplotly(p)
+  ggplotly(p, tooltip = "text") %>%
+    plotly::add_trace(
+      x = events$Event_Number,
+      y = events$Avg_Price,
+      type = 'scatter',
+      mode = 'markers',
+      text = paste("Event: ", events$Event_Name,
+                   "<br>Avg Price: $", round(events$Avg_Price, 2),
+                   "<br>Event Type: ", events$Segment)
+    )
 }
 
 #' @title Plot Event Count Distribution by Hour
@@ -619,21 +623,21 @@ event_hourly_distribution_plot <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df) || nrow(events_df) == 0) {
     stop("Error: events_df must be a non-null data frame with at least one event.")
   }
-  
+
   # Ensure "Time" column exists
   if (!"Time" %in% colnames(events_df)) {
     stop("Error: The data frame must contain a 'Time' column.")
   }
-  
+
   events_df <- events_df %>%
     filter(!is.na(Time)) %>%
     mutate(Hour = as.numeric(substr(Time, 1, 2)))  # Extract hour from Time
-  
+
   event_counts <- events_df %>%
     group_by(Hour) %>%
     summarise(Count = n()) %>%
     arrange(Hour)
-  
+
   ggplot(event_counts, aes(x = Hour, y = Count)) +
     geom_bar(stat = "identity", fill = "#d0006f", color = "#009cde", alpha = 0.8) +
     scale_x_continuous(breaks = 0:23) +  # Ensure all hours are shown
@@ -672,22 +676,22 @@ event_day_distribution_plot <- function(events_df) {
   if (is.null(events_df) || !is.data.frame(events_df) || nrow(events_df) == 0) {
     stop("Error: events_df must be a non-null data frame with at least one event.")
   }
-  
+
   # Ensure "Date" column exists
   if (!"Date" %in% colnames(events_df)) {
     stop("Error: The data frame must contain a 'Date' column.")
   }
-  
+
   events_df <- events_df %>%
     filter(!is.na(Date)) %>%
     mutate(Weekday = weekdays(Date))  # Extract day of the week
-  
+
   event_counts <- events_df %>%
     group_by(Weekday) %>%
     summarise(Count = n()) %>%
     mutate(Weekday = factor(Weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
     arrange(Weekday)
-  
+
   ggplot(event_counts, aes(x = Weekday, y = Count)) +
     geom_bar(stat = "identity", fill = "#d0006f", color = "#009cde", alpha = 0.8) +
     labs(
