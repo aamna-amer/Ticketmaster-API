@@ -36,6 +36,9 @@ jobs:
       - name: Set environment variables
         run: echo "TICKETMASTER_API_KEY=${{ secrets.TICKETMASTER_API_KEY }}" >> $GITHUB_ENV
 
+      - name: Check if API key is set
+        run: echo "TICKETMASTER_API_KEY is set to ${TICKETMASTER_API_KEY}"
+
       - name: Install Pandoc (Ubuntu)
         if: matrix.config.os == 'ubuntu-latest'
         run: |
