@@ -1,6 +1,6 @@
 test_that("get_full_ticketmaster_data() returns a valid dataframe", {
   skip_if_not(Sys.getenv("TICKETMASTER_API_KEY") != "", "API key not set, skipping test.")
-  api_key <- get_ticketmaster_api_key()
+  api_key <- Sys.getenv("TICKETMASTER_API_KEY")
   events_df <- get_full_ticketmaster_data()
   expect_s3_class(events_df, "data.frame")  # Must return a dataframe
   expect_true(nrow(events_df) > 0)  # Should have events
