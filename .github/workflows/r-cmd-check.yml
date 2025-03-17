@@ -75,14 +75,21 @@ jobs:
       - name: Run tests
         run: Rscript -e 'testthat::test_package("TicketmasterR")'
 
-      - name: Run code coverage
-        run: Rscript -e 'covr::codecov()'
+      - name: Generate code coverage report
+        run: Rscript -e 'covr::package_coverage() %>% covr::to_cobertura() %>% writeLines("coverage.xml")'
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage.xml
           slug: aamna-amer/TicketmasterR
+
+      - name: Upload coverage report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
 
       - name: Upload check results (if failure occurs)
         if: failure()
